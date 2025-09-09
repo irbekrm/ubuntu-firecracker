@@ -1,13 +1,14 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV KERNEL_SOURCE_VERSION 6.5.0
+ENV DEBIAN_FRONTEND=noninteractive
+ENV KERNEL_SOURCE_VERSION=6.8.0
+ENV GITHUB_ACTIONS_RUNNER_VERSION=2.328.0
 
 WORKDIR /root
 
 RUN apt-get update && apt-get install -y debootstrap build-essential \
     bison rsync rsyslog debhelper \
-    fakeroot linux-source-$KERNEL_SOURCE_VERSION bc kmod cpio flex cpio \
+    fakeroot linux-source-$KERNEL_SOURCE_VERSION bc kmod cpio flex \
     libncurses5-dev libelf-dev libssl-dev \
     && tar xvf /usr/src/linux-source-$KERNEL_SOURCE_VERSION.tar.*
 
