@@ -44,11 +44,37 @@ rm -vf /etc/systemd/system/timers.target.wants/*
 rm -rf /usr/share/{doc,man,info,locale}
 
 # Install GitHub Actions runner.
-cd /home/ubuntu
+mkdir -p /home/ubuntu/actions-runner
+pushd /home/ubuntu/actions-runner
 curl -o actions-runner-linux-x64-${GITHUB_ACTIONS_RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${GITHUB_ACTIONS_RUNNER_VERSION}/actions-runner-linux-x64-${GITHUB_ACTIONS_RUNNER_VERSION}.tar.gz
 tar xzf ./actions-runner-linux-x64-${GITHUB_ACTIONS_RUNNER_VERSION}.tar.gz
-chown -R ubuntu:ubuntu /home/ubuntu
+chown -R ubuntu:ubuntu /home/ubuntu/actions-runner
 rm actions-runner-linux-x64-${GITHUB_ACTIONS_RUNNER_VERSION}.tar.gz
+
+cat > /home/ubuntu/on-job-started.sh <<'EOF'
+#!/usr/bin/env bash
+if [ -n "$GH_STATE_TRANSITION_SERVER_TOKEN" ] && [ -n "$GH_STATE_TRANSITION_SERVER_URL" ]; then
+  ADDR="${GH_STATE_TRANSITION_SERVER_URL}?token=${GH_STATE_TRANSITION_SERVER_TOKEN}&state=started"
+  env -0 | curl --silent -X POST -H "Content-Type: text/plain" --data-binary @- "$ADDR"
+fi
+EOF
+
+cat > /home/ubuntu/on-job-completed.sh <<'EOF'
+#!/usr/bin/env bash
+if [ -n "$GH_STATE_TRANSITION_SERVER_TOKEN" ] && [ -n "$GH_STATE_TRANSITION_SERVER_URL" ]; then
+  ADDR="${GH_STATE_TRANSITION_SERVER_URL}?token=${GH_STATE_TRANSITION_SERVER_TOKEN}&state=completed"
+  env -0 | curl --silent -X POST -H "Content-Type: text/plain" --data-binary @- "$ADDR"
+fi
+EOF
+
+chmod +x /home/ubuntu/on-job-started.sh
+chmod +x /home/ubuntu/on-job-completed.sh
+
+echo "ACTIONS_RUNNER_HOOK_JOB_STARTED=/home/ubuntu/on-job-started.sh" >> .env
+echo "ACTIONS_RUNNER_HOOK_JOB_COMPLETED=/home/ubuntu/on-job-completed.sh" >> .env
+
+chown -R ubuntu:ubuntu /home/ubuntu
+popd
 
 echo "fc-ubuntu" > /etc/hostname
 cat > /etc/hosts <<EOF
