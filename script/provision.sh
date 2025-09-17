@@ -22,10 +22,21 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 # # This prevents systemd from waiting for ttyS0 device (we pass console via kernel boot args)
 systemctl mask serial-getty@ttyS0.service
 
-# All the other packages are installed via debootstrap, but this one was could
-# not be installed that way.
-apt-get update 
+# dnsutils seemed to be needed for DNS resolution to work at all
+apt-get update
 apt-get install -y dnsutils
+
+# Temporarily install Go to build go-tool-cache binary
+GO_VERSION="1.25.0"
+curl -L https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /tmp
+export GOROOT=/tmp/go
+export PATH=/tmp/go/bin:$PATH
+export GOPATH=/tmp/gopath
+export GOTELEMETRY=off
+/tmp/go/bin/go install github.com/bradfitz/go-tool-cache/cmd/go-cacher@latest
+mv /tmp/gopath/bin/go-cacher /home/ubuntu/gocacheprog
+chmod +x /home/ubuntu/gocacheprog
+rm -rf /tmp/go /tmp/gopath
 
 # https://github.com/firecracker-microvm/firecracker/blob/8208ee8ca0ab6e43fe0c22a7d9cb41b5045d4ef4/resources/chroot.sh#L49
 rm -f /etc/systemd/system/multi-user.target.wants/systemd-resolved.service
@@ -72,6 +83,7 @@ chmod +x /home/ubuntu/on-job-completed.sh
 
 echo "ACTIONS_RUNNER_HOOK_JOB_STARTED=/home/ubuntu/on-job-started.sh" >> .env
 echo "ACTIONS_RUNNER_HOOK_JOB_COMPLETED=/home/ubuntu/on-job-completed.sh" >> .env
+echo "GOCACHEPROG=/home/ubuntu/gocacheprog --gateway-addr-port=31364" >> .env
 
 chown -R ubuntu:ubuntu /home/ubuntu
 popd
