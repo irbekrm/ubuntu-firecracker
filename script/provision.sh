@@ -23,8 +23,9 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 systemctl mask serial-getty@ttyS0.service
 
 # dnsutils seemed to be needed for DNS resolution to work at all
+# nfs-common so that we can use Go module cache over NFS https://github.com/tailscale/gomodfs
 apt-get update
-apt-get install -y dnsutils
+apt-get install -y dnsutils nfs-common
 
 # Temporarily install Go to build go-tool-cache binary
 GO_VERSION="1.25.0"
