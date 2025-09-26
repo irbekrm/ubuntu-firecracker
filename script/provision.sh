@@ -65,25 +65,14 @@ rm actions-runner-linux-x64-${GITHUB_ACTIONS_RUNNER_VERSION}.tar.gz
 
 cat > /home/ubuntu/on-job-started.sh <<'EOF'
 #!/usr/bin/env bash
-if [ -n "$GH_STATE_TRANSITION_SERVER_TOKEN" ] && [ -n "$GH_STATE_TRANSITION_SERVER_URL" ]; then
-  ADDR="${GH_STATE_TRANSITION_SERVER_URL}?token=${GH_STATE_TRANSITION_SERVER_TOKEN}&state=started"
-  env -0 | curl --silent -X POST -H "Content-Type: text/plain" --data-binary @- "$ADDR"
-fi
-EOF
-
-cat > /home/ubuntu/on-job-completed.sh <<'EOF'
-#!/usr/bin/env bash
-if [ -n "$GH_STATE_TRANSITION_SERVER_TOKEN" ] && [ -n "$GH_STATE_TRANSITION_SERVER_URL" ]; then
-  ADDR="${GH_STATE_TRANSITION_SERVER_URL}?token=${GH_STATE_TRANSITION_SERVER_TOKEN}&state=completed"
-  env -0 | curl --silent -X POST -H "Content-Type: text/plain" --data-binary @- "$ADDR"
+if [ -n "$GH_STATE_TRANSITION_SERVER_ADDR" ]; then
+  env -0 | curl --silent -X POST -H "Content-Type: text/plain" --data-binary @- "$GH_STATE_TRANSITION_SERVER_ADDR"
 fi
 EOF
 
 chmod +x /home/ubuntu/on-job-started.sh
-chmod +x /home/ubuntu/on-job-completed.sh
 
 echo "ACTIONS_RUNNER_HOOK_JOB_STARTED=/home/ubuntu/on-job-started.sh" >> .env
-echo "ACTIONS_RUNNER_HOOK_JOB_COMPLETED=/home/ubuntu/on-job-completed.sh" >> .env
 echo "GOCACHEPROG=/home/ubuntu/gocacheprog --gateway-addr-port=31364" >> .env
 
 chown -R ubuntu:ubuntu /home/ubuntu
