@@ -24,8 +24,24 @@ systemctl mask serial-getty@ttyS0.service
 
 # dnsutils seemed to be needed for DNS resolution to work at all
 # nfs-common so that we can use Go module cache over NFS https://github.com/tailscale/gomodfs
+# Set up Docker repo.
+# Docker, build-essential,jq are needed for CI tests.
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 apt-get update
-apt-get install -y dnsutils nfs-common
+apt-get install -y dnsutils nfs-common docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin build-essential jq
+
+usermod -aG docker ubuntu
+
+# nftables based implementation seems to hit a kernel issue during build.
+update-alternatives --set iptables /usr/sbin/iptables-legacy
+
+# Enable and start Docker service
+systemctl enable docker
+systemctl start docker
 
 # Temporarily install Go to build go-tool-cache binary
 GO_VERSION="1.25.0"
@@ -88,3 +104,7 @@ EOF
 # https://github.com/firecracker-microvm/firecracker/issues/5172
 rm -rf /etc/resolv.conf
 ln -s /proc/net/pnp /etc/resolv.conf
+
+# for some specific CI tests that need to distinguish Firecracker from other
+# runners.
+touch /home/ubuntu/.is-ephemeral-build-vm

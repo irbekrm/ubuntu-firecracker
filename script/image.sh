@@ -10,7 +10,7 @@ truncate -s 5G /output/rootfs.ext4
 mkfs.ext4 /output/rootfs.ext4
 
 mount /output/rootfs.ext4 /rootfs
-debootstrap --variant=minbase --include openssh-server,systemd,unzip,rsync,apt,curl,git,ca-certificates,libicu74,iputils-ping,sudo,iproute2 noble /rootfs http://archive.ubuntu.com/ubuntu/
+debootstrap --variant=minbase --include openssh-server,systemd,unzip,rsync,apt,curl,git,ca-certificates,gnupg,libicu74,iputils-ping,sudo,iproute2 noble /rootfs http://archive.ubuntu.com/ubuntu/
 
 mount --bind / /rootfs/mnt
 chroot /rootfs /bin/bash /mnt/script/provision.sh
