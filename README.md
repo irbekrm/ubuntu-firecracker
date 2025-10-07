@@ -14,7 +14,6 @@ Build the image:
 docker run --privileged -it --rm -v $(pwd)/output:/output ubuntu-firecracker
 ```
 
-Start the image with firectl
 ```shell
 # copy image and kernel
 cp output/kernel ubuntu-vmlinux
@@ -23,7 +22,7 @@ cp output/rootfs.ext4 rootfs.ext4
 truncate -s 8G rootfs.ext4
 resize2fs rootfs.ext4
 
-#launch firecracker
+# launch firecracker
 
 example configfile for a bridge networking setup:
 
