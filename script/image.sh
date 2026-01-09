@@ -13,8 +13,16 @@ mount /output/rootfs.ext4 /rootfs
 debootstrap --variant=minbase --include openssh-server,systemd,unzip,rsync,apt,curl,git,ca-certificates,gnupg,libicu74,iputils-ping,sudo,iproute2 noble /rootfs http://archive.ubuntu.com/ubuntu/
 
 mount --bind / /rootfs/mnt
+mount --bind /proc /rootfs/proc
+mount --bind /sys /rootfs/sys
+mount --bind /dev /rootfs/dev
+mount --bind /dev/pts /rootfs/dev/pts
 chroot /rootfs /bin/bash /mnt/script/provision.sh
 
+umount /rootfs/dev/pts
+umount /rootfs/dev
+umount /rootfs/sys
+umount /rootfs/proc
 umount /rootfs/mnt
 umount /rootfs
 

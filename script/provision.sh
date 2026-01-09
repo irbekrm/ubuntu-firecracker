@@ -100,6 +100,11 @@ cat > /etc/hosts <<EOF
 127.0.1.1   fc-ubuntu
 EOF
 
+# Install Nix package manager for the ubuntu user (before breaking DNS)
+sudo -u ubuntu HOME=/home/ubuntu sh -c 'curl -L https://nixos.org/nix/install | sh -s -- --no-daemon --yes'
+echo 'if [ -e /home/ubuntu/.nix-profile/etc/profile.d/nix.sh ]; then . /home/ubuntu/.nix-profile/etc/profile.d/nix.sh; fi' >> /home/ubuntu/.bashrc
+chown ubuntu:ubuntu /home/ubuntu/.bashrc
+
 # Make /etc/resolv.conf a link so that nameservers can be configured via kernel boot args.
 # https://github.com/firecracker-microvm/firecracker/issues/5172
 rm -rf /etc/resolv.conf
