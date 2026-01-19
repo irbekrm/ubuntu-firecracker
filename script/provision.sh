@@ -22,6 +22,13 @@ echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 # # This prevents systemd from waiting for ttyS0 device (we pass console via kernel boot args)
 systemctl mask serial-getty@ttyS0.service
 
+# Ensure DNS works during provisioning by adding a fallback nameserver
+# (systemd-resolved may not be fully functional in chroot environment)
+# https://wiki.archlinux.org/title/Chroot
+if ! grep -q nameserver /etc/resolv.conf 2>/dev/null; then
+    echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+fi
+
 # dnsutils seemed to be needed for DNS resolution to work at all
 # nfs-common so that we can use Go module cache over NFS https://github.com/tailscale/gomodfs
 # Set up Docker repo.
@@ -42,18 +49,6 @@ update-alternatives --set iptables /usr/sbin/iptables-legacy
 # Enable and start Docker service
 systemctl enable docker
 systemctl start docker
-
-# Temporarily install Go to build go-tool-cache binary
-GO_VERSION="1.25.0"
-curl -L https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /tmp
-export GOROOT=/tmp/go
-export PATH=/tmp/go/bin:$PATH
-export GOPATH=/tmp/gopath
-export GOTELEMETRY=off
-/tmp/go/bin/go install github.com/bradfitz/go-tool-cache/cmd/go-cacher@latest
-mv /tmp/gopath/bin/go-cacher /home/ubuntu/gocacheprog
-chmod +x /home/ubuntu/gocacheprog
-rm -rf /tmp/go /tmp/gopath
 
 # https://github.com/firecracker-microvm/firecracker/blob/8208ee8ca0ab6e43fe0c22a7d9cb41b5045d4ef4/resources/chroot.sh#L49
 rm -f /etc/systemd/system/multi-user.target.wants/systemd-resolved.service
@@ -89,7 +84,6 @@ EOF
 chmod +x /home/ubuntu/on-job-started.sh
 
 echo "ACTIONS_RUNNER_HOOK_JOB_STARTED=/home/ubuntu/on-job-started.sh" >> .env
-echo "GOCACHEPROG=/home/ubuntu/gocacheprog --gateway-addr-port=31364" >> .env
 
 chown -R ubuntu:ubuntu /home/ubuntu
 popd
