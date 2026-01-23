@@ -107,7 +107,6 @@ chown ubuntu:ubuntu /home/ubuntu/.bashrc
 
 # TODO: Automatically read hashes from nix/source.json in corp.
 for hash in \
-  914aba08a26cb10538b84d00d6cfb01c9776d80c \
   61308fbb163ae7045c9b3004a0d067822984df33 \
   4989a246d7a390a859852baddb1013f825435cee \
   27bd67e55fe09f9d68c77ff151c3e44c4f81f7de \
