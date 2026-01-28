@@ -111,7 +111,7 @@ for hash in \
   4989a246d7a390a859852baddb1013f825435cee \
   27bd67e55fe09f9d68c77ff151c3e44c4f81f7de \
   d19cf9dfc633816a437204555afeb9e722386b76; do
-  nix-prefetch-url --unpack "https://github.com/NixOS/nixpkgs/archive/${hash}.tar.gz"
+  sudo -u ubuntu sh -c ". /home/ubuntu/.nix-profile/etc/profile.d/nix.sh && nix-prefetch-url 'https://github.com/NixOS/nixpkgs/archive/${hash}.tar.gz'"
 done
 
 # Make /etc/resolv.conf a link so that nameservers can be configured via kernel boot args.
